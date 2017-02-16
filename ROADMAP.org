@@ -1,0 +1,39 @@
+* Current
+  - [X] What should be done for this strange dbus types which have a token associated but it is not printable?
+    (=r=, =e= and maybe other nasty shit I haven't found at the time of writing)
+    Solution:
+    1. Make a separate dictionary with all this =VirtualTokens= types.
+    2. Create tokens for this types.
+    3. When =Token.String()= search =VirtualTokens= types for this =Token= and
+       if it is present return empty string.
+
+    This is just a workaround for shit that exists in protocol by design.
+    Clean solution (hard to implement without breaking protocol and libraries) is to
+    use =r=, =e= and other tokens to represent containers just like =a= do
+    for arrays.
+  - [X] Transform tokenized string into the types
+    The problem here is the representation of container types. At this moment I think they should
+    be recursive structs(now they are just int's).
+
+    Dirty implementation is ready. Current problem is array type resolving(it is =Byte= when must me =Array=):
+    #+BEGIN_SRC
+    go test ./message/signature/parser -v
+    === RUN   TestParse
+    types.Typers{(*types.SimpleType)(0xc42000e8e8), (*types.ComplexType)(0xc42000a5e0), (*types.SimpleType)(0xc42000e958), (*types.SimpleType)(0xc42000e968), (*types.SimpleType)(0xc42000e978), (*types.SimpleType)(0xc42000e988)}
+    (types.Typers) (len=6 cap=6) [ Int64, Byte [ Int32, Int32, Byte [ String ] ], Int32, Int32, Int32, Int64 ]
+    #+END_SRC
+
+    Added =Invalid= types which represent =0= or empty type.
+
+  - [X] Cover signature parsing with tests
+  - [ ] Encode signature from struct/interface
+    Create(Struct/Interface)                    -> Signature.String()
+    Signature.Unmarshal(data, Struct/Interface) -> Filled Struct/Interface
+    Signature.Marshal(Struct/Interface)         -> Byte slice with Struct/Interface data
+    - [ ] How will look Signature type?
+      There is parser which returns Typer for a signature, but
+      we don't want to parse the signature every time and keep all AST in memory.
+      Signature is a more abstract container.
+
+  - [ ] Message decoding based on signature
+  - [ ] Message encoding
